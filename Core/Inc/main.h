@@ -70,6 +70,8 @@ void Error_Handler(void);
 #define LEDP_1_GPIO_Port GPIOB
 #define LEDP_2_Pin GPIO_PIN_8
 #define LEDP_2_GPIO_Port GPIOA
+#define LED_TEST_Pin GPIO_PIN_9
+#define LED_TEST_GPIO_Port GPIOA
 #define LEDT1_1_Pin GPIO_PIN_10
 #define LEDT1_1_GPIO_Port GPIOA
 #define LEDT1_2_Pin GPIO_PIN_3

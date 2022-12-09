@@ -110,6 +110,12 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  HAL_GPIO_WritePin(LED_TEST_GPIO_Port, LED_TEST_Pin, 0);
+	  HAL_GPIO_WritePin(LEDT1_1_GPIO_Port, LEDT1_1_Pin, 1);
+	  HAL_Delay(2000);
+	  HAL_GPIO_WritePin(LED_TEST_GPIO_Port, LED_TEST_Pin, 1);
+	  HAL_GPIO_WritePin(LEDT1_1_GPIO_Port, LEDT1_1_Pin, 0);
+	  HAL_Delay(2000);
   }
   /* USER CODE END 3 */
 }
@@ -244,7 +250,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, LEDP_1_Pin|LEDT1_2_Pin|LEDT2_2_Pin|LEDT2_1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LEDP_2_Pin|LEDT1_1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LEDP_2_Pin|LED_TEST_Pin|LEDT1_1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : BUTTONP_Pin BUTTON1_Pin BUTTON2_Pin */
   GPIO_InitStruct.Pin = BUTTONP_Pin|BUTTON1_Pin|BUTTON2_Pin;
@@ -271,8 +277,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LEDP_2_Pin LEDT1_1_Pin */
-  GPIO_InitStruct.Pin = LEDP_2_Pin|LEDT1_1_Pin;
+  /*Configure GPIO pins : LEDP_2_Pin LED_TEST_Pin LEDT1_1_Pin */
+  GPIO_InitStruct.Pin = LEDP_2_Pin|LED_TEST_Pin|LEDT1_1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

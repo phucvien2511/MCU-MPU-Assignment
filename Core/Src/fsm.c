@@ -51,7 +51,7 @@ void fsm_automatic_run() {
 		break;
 	case RG:
 		setTrafficLight(RED, GREEN);
-		if (isButtonPressed[0]) {
+		if (isButtonPressed(0)) {
 			status = MAN_RED;
 		}
 		if (timer_counter[1] == 0) {
@@ -61,7 +61,7 @@ void fsm_automatic_run() {
 		break;
 	case RY:
 		setTrafficLight(RED, YELLOW);
-		if (isButtonPressed[0]) {
+		if (isButtonPressed(0)) {
 			status = MAN_RED;
 		}
 		if (timer_counter[0] == 0 && timer_counter[1] == 0) {
@@ -72,7 +72,7 @@ void fsm_automatic_run() {
 		break;
 	case GR:
 		setTrafficLight(GREEN, RED);
-		if (isButtonPressed[0]) {
+		if (isButtonPressed(0)) {
 			status = MAN_RED;
 		}
 		if (timer_counter[0] == 0) {
@@ -82,7 +82,7 @@ void fsm_automatic_run() {
 		break;
 	case YR:
 		setTrafficLight(YELLOW, RED);
-		if (isButtonPressed[0]) {
+		if (isButtonPressed(0)) {
 			status = MAN_RED;
 		}
 		if (timer_counter[0] == 0 && timer_counter[1] == 0) {
@@ -91,13 +91,14 @@ void fsm_automatic_run() {
 			status = RG;
 		}
 		break;
+	}
 }
 
 void fsm_manual_run() {
 	switch (status) {
 	case MAN_RED:
 		setTrafficLight(RED, GREEN);
-		if (isButtonPressed[0]) {
+		if (isButtonPressed(0)) {
 			status = MAN_YELLOW1;
 			setTimer(0, 500);
 		}
@@ -110,7 +111,7 @@ void fsm_manual_run() {
 		break;
 	case MAN_GREEN:
 		setTrafficLight(GREEN, RED);
-		if (isButtonPressed[0]) {
+		if (isButtonPressed(0)) {
 			status = MAN_YELLOW2;
 			setTimer(1, 500);
 		}
@@ -124,11 +125,13 @@ void fsm_manual_run() {
 	}
 }
 
-void fsm_tuning_run() {
-	switch (status) {
-	case SET_RED:
-		break;
-	case SET_YELLOW:
-		break;
-	}
-}
+//void fsm_tuning_run() {
+//	switch (status) {
+//	case SET_RED:
+//		break;
+//	case SET_YELLOW:
+//		break;
+//	default:
+//		break;
+//	}
+//}

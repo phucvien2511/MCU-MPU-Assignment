@@ -8,12 +8,12 @@
 
 #include "software_timer.h"
 
-int timer_flag = { 0 };
+int timer_flag[4] = { 0 };
 //int timer1_flag = 0;
 //int timer2_flag = 0;
 //int timer3_flag = 0;
 
-int timer_counter = { 0 };
+int timer_counter[4] = { 0 };
 //int timer1_counter = 0;
 //int timer2_counter = 0;
 //int timer3_counter = 0;

@@ -7,8 +7,8 @@
 
 #ifndef INC_SOFTWARE_TIMER_H_
 #define INC_SOFTWARE_TIMER_H_
-
-extern int timer_flag[NUM_TIMERS];
+#include "global.h"
+int timer_flag[4];
 //extern int timer1_flag;
 //extern int timer2_flag;
 //extern int timer3_flag;

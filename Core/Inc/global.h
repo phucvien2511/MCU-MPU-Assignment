@@ -44,9 +44,9 @@
 /* Global variables */
 extern int status;						//FSM status
 uint16_t BUTTON_PIN[NUM_BUTTONS];
-uint16_t BUTTON_PORT[NUM_BUTTONS];
+GPIO_TypeDef * BUTTON_PORT[NUM_BUTTONS];
 uint16_t LED_PIN[NUM_LEDS];
-uint16_t LED_PORT[NUM_LEDS];
+GPIO_TypeDef * LED_PORT[NUM_LEDS];
 extern int button_flag[NUM_BUTTONS];
 extern int TIME_RED;
 extern int TIME_YELLOW;

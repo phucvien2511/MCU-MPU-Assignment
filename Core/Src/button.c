@@ -13,7 +13,7 @@ int KeyReg2[NUM_BUTTONS] = {NORMAL_STATE};
 int KeyReg3[NUM_BUTTONS] = {NORMAL_STATE};
 int button_flag[NUM_BUTTONS] = {0};
 int buttonLongPress_flag[NUM_BUTTONS] = {0};
-
+int timeOutLongPress[NUM_BUTTONS] = { 300 };
 int isButtonPressed(int i) {
 	if (button_flag[i] == 1) {
 		button_flag[i] = 0;
@@ -42,7 +42,7 @@ void getKeyInput() {
 					  button_flag[i] = 1;
 					  timeOutLongPress[i] = TIMEOUT_LONG_PRESS;
 				  }
-				  else firstLongPress = 0;
+				  //else firstLongPress = 0;
 			}
 			else {
 				timeOutLongPress[i]--;
