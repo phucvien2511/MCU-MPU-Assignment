@@ -1,3 +1,8 @@
-fsm.c:10:6:setTrafficLight	16	static
-fsm.c:45:6:fsm_automatic_run	8	static
-fsm.c:97:6:fsm_manual_run	8	static
+fsm.c:15:6:setTrafficLight	16	static
+fsm.c:49:6:setPedesLight	16	static
+fsm.c:73:6:setBuzzer	8	static
+fsm.c:84:6:send7SEG	16	static
+fsm.c:88:6:fsm_automatic_run	8	static
+fsm.c:174:6:fsm_manual_run	8	static
+fsm.c:243:6:fsm_tuning_run	8	static
+fsm.c:297:6:fsm_pedestrian_run	72	static

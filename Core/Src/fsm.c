@@ -6,42 +6,85 @@
  */
 
 #include "fsm.h"
-
+#include <stdio.h>
+int temp_time = 1;
+int volume = 0;
+int buzzer_delay = 1000;
+int ratio = 0;
+UART_HandleTypeDef huart2;
 void setTrafficLight(int color1, int color2) {
 	switch (color1) {
 	case RED:
-		HAL_GPIO_WritePin(LED_PORT[0], LED_PIN[0], 1);
-		HAL_GPIO_WritePin(LED_PORT[1], LED_PIN[1], 0);
+		HAL_GPIO_WritePin(LED_PORT[0], LED_PIN[0], 0);
+		HAL_GPIO_WritePin(LED_PORT[1], LED_PIN[1], 1);
 		break;
 	case YELLOW:
 		HAL_GPIO_WritePin(LED_PORT[0], LED_PIN[0], 1);
 		HAL_GPIO_WritePin(LED_PORT[1], LED_PIN[1], 1);
 		break;
 	case GREEN:
-		HAL_GPIO_WritePin(LED_PORT[0], LED_PIN[0], 0);
-		HAL_GPIO_WritePin(LED_PORT[1], LED_PIN[1], 1);
+		HAL_GPIO_WritePin(LED_PORT[0], LED_PIN[0], 1);
+		HAL_GPIO_WritePin(LED_PORT[1], LED_PIN[1], 0);
 		break;
 	default:
 		break;
 	}
 	switch (color2) {
 	case RED:
-		HAL_GPIO_WritePin(LED_PORT[2], LED_PIN[2], 1);
-		HAL_GPIO_WritePin(LED_PORT[3], LED_PIN[3], 0);
+		HAL_GPIO_WritePin(LED_PORT[2], LED_PIN[2], 0);
+		HAL_GPIO_WritePin(LED_PORT[3], LED_PIN[3], 1);
 		break;
 	case YELLOW:
 		HAL_GPIO_WritePin(LED_PORT[2], LED_PIN[2], 1);
 		HAL_GPIO_WritePin(LED_PORT[3], LED_PIN[3], 1);
 		break;
 	case GREEN:
-		HAL_GPIO_WritePin(LED_PORT[2], LED_PIN[2], 0);
-		HAL_GPIO_WritePin(LED_PORT[3], LED_PIN[3], 1);
+		HAL_GPIO_WritePin(LED_PORT[2], LED_PIN[2], 1);
+		HAL_GPIO_WritePin(LED_PORT[3], LED_PIN[3], 0);
 		break;
 	default:
 		break;
 	}
 }
+void setPedesLight(int color) {
+	switch (color) {
+	case RED:
+		HAL_GPIO_WritePin(LED_PORT[4], LED_PIN[4], 0);
+		HAL_GPIO_WritePin(LED_PORT[5], LED_PIN[5], 1);
+		break;
+	case YELLOW:
+		HAL_GPIO_WritePin(LED_PORT[4], LED_PIN[4], 1);
+		HAL_GPIO_WritePin(LED_PORT[5], LED_PIN[5], 1);
+		break;
+	case GREEN:
+		HAL_GPIO_WritePin(LED_PORT[4], LED_PIN[4], 1);
+		HAL_GPIO_WritePin(LED_PORT[5], LED_PIN[5], 0);
+		break;
+	case OFF:
+		HAL_GPIO_WritePin(LED_PORT[4], LED_PIN[4], 0);
+		HAL_GPIO_WritePin(LED_PORT[5], LED_PIN[5], 0);
+		break;
+	default:
+		break;
+	}
 
+}
+
+void setBuzzer(TIM_HandleTypeDef htim) {
+	__HAL_TIM_SetCompare(&htim, TIM_CHANNEL_1, volume);
+	HAL_Delay(buzzer_delay);
+	__HAL_TIM_SetCompare(&htim, TIM_CHANNEL_1, 0);
+	HAL_Delay(buzzer_delay);
+	volume += ratio;
+	if (volume > 1000) volume = ratio;
+	buzzer_delay -= ratio;
+	if (buzzer_delay < 1) buzzer_delay = 1000;
+}
+
+void send7SEG(int TIME) {
+	sprintf(str, "!7SEG:%d%d#\r\n", TIME/10, TIME%10);
+	HAL_UART_Transmit_IT(&huart2, (void*)str, 100);
+}
 void fsm_automatic_run() {
 	switch (status) {
 	case INIT:
@@ -50,46 +93,80 @@ void fsm_automatic_run() {
 		status = RG;
 		break;
 	case RG:
+		send7SEG(TIME_RED);
 		setTrafficLight(RED, GREEN);
-		if (isButtonPressed(0)) {
-			status = MAN_RED;
-		}
-		if (timer_counter[1] == 0) {
+		if (timer_flag[1] == 1) {
 			setTimer(1, TIME_YELLOW);
 			status = RY;
 		}
-		break;
-	case RY:
-		setTrafficLight(RED, YELLOW);
-		if (isButtonPressed(0)) {
+		if (isButtonPressed(1)) {
 			status = MAN_RED;
 		}
-		if (timer_counter[0] == 0 && timer_counter[1] == 0) {
+		if (isButtonPressed(2)) {
+			status = SET_RED;
+			setTimer(2, 1000);
+		}
+		if (isButtonPressed(3)) {
+			p_status = P_INIT;
+		}
+		break;
+	case RY:
+		send7SEG(TIME_RED);
+		setTrafficLight(RED, YELLOW);
+		if (timer_flag[1] == 1) {
 			setTimer(0, TIME_GREEN);
 			setTimer(1, TIME_RED);
 			status = GR;
 		}
-		break;
-	case GR:
-		setTrafficLight(GREEN, RED);
-		if (isButtonPressed(0)) {
+		if (isButtonPressed(1)) {
 			status = MAN_RED;
 		}
-		if (timer_counter[0] == 0) {
+		if (isButtonPressed(2)) {
+			status = SET_RED;
+			setTimer(2, 1000);
+		}
+		if (isButtonPressed(3)) {
+			p_status = P_INIT;
+		}
+		break;
+	case GR:
+		send7SEG(TIME_GREEN);
+		setTrafficLight(GREEN, RED);
+		if (timer_flag[0] == 1) {
 			setTimer(0, TIME_YELLOW);
 			status = YR;
 		}
-		break;
-	case YR:
-		setTrafficLight(YELLOW, RED);
-		if (isButtonPressed(0)) {
+		if (isButtonPressed(1)) {
 			status = MAN_RED;
 		}
-		if (timer_counter[0] == 0 && timer_counter[1] == 0) {
+		if (isButtonPressed(2)) {
+			status = SET_RED;
+			setTimer(2, 1000);
+		}
+		if (isButtonPressed(3)) {
+			p_status = P_INIT;
+		}
+		break;
+	case YR:
+		send7SEG(TIME_YELLOW);
+		setTrafficLight(YELLOW, RED);
+		if (timer_flag[0] == 1) {
 			setTimer(0, TIME_RED);
 			setTimer(1, TIME_GREEN);
 			status = RG;
 		}
+		if (isButtonPressed(1)) {
+			status = MAN_RED;
+		}
+		if (isButtonPressed(2)) {
+			status = SET_RED;
+			setTimer(2, 1000);
+		}
+		if (isButtonPressed(3)) {
+			p_status = P_INIT;
+		}
+		break;
+	default:
 		break;
 	}
 }
@@ -100,38 +177,181 @@ void fsm_manual_run() {
 		setTrafficLight(RED, GREEN);
 		if (isButtonPressed(0)) {
 			status = MAN_YELLOW1;
-			setTimer(0, 500);
+			setTimer(0, 300);
+		}
+		if (isButtonPressed(1)) {
+			status = RG;
+			setTimer(0, TIME_RED);
+			setTimer(1, TIME_GREEN);
+		}
+		if (isButtonPressed(2)) {
+			status = SET_RED;
+			setTimer(2, 1000);
 		}
 		break;
 	case MAN_YELLOW1:
 		setTrafficLight(RED, YELLOW);
-		if (timer_counter[0] == 0) {	//Yellow light time was ended
+		if (timer_flag[0] == 1) {	//Yellow light time was ended
 			status = MAN_GREEN;
+		}
+		if (isButtonPressed(1)) {
+			status = RY;
+			setTimer(0, TIME_RED);
+			setTimer(1, TIME_YELLOW);
+		}
+		if (isButtonPressed(2)) {
+			status = SET_RED;
+			setTimer(2, 1000);
 		}
 		break;
 	case MAN_GREEN:
 		setTrafficLight(GREEN, RED);
 		if (isButtonPressed(0)) {
 			status = MAN_YELLOW2;
-			setTimer(1, 500);
+			setTimer(0, 300);
+		}
+		if (isButtonPressed(1)) {
+			status = GR;
+			setTimer(0, TIME_GREEN);
+			setTimer(1, TIME_RED);
+		}
+		if (isButtonPressed(2)) {
+			status = SET_RED;
+			setTimer(2, 1000);
 		}
 		break;
 	case MAN_YELLOW2:
 		setTrafficLight(YELLOW, RED);
-		if (timer_counter[0] == 0) {	//Yellow light time was ended
+		if (timer_flag[0] == 1) {	//Yellow light time was ended
 			status = MAN_RED;
 		}
+		if (isButtonPressed(1)) {
+			status = YR;
+			setTimer(0, TIME_YELLOW);
+			setTimer(1, TIME_RED);
+		}
+		if (isButtonPressed(2)) {
+			status = SET_RED;
+			setTimer(2, 1000);
+		}
+		break;
+	default:
 		break;
 	}
 }
 
-//void fsm_tuning_run() {
-//	switch (status) {
-//	case SET_RED:
-//		break;
-//	case SET_YELLOW:
-//		break;
-//	default:
-//		break;
-//	}
-//}
+void fsm_tuning_run() {
+	switch (status) {
+	case SET_RED:
+		setTrafficLight(RED, RED);
+		if (timer_flag[2] == 1) {
+			status = INIT;
+			deleteTimer(2);
+		}
+		if (isButtonPressed(0)) {
+			temp_time++;
+			if (temp_time > 99) temp_time = 1;
+			setTimer(2, 1000);
+		}
+		if (isButtonPressed(1)) {
+			temp_time--;
+			if (temp_time < 1) temp_time = 99;
+			setTimer(2, 1000);
+		}
+		if (isButtonPressed(2)) {
+			TIME_RED = temp_time*100;
+			temp_time = 1;
+			status = SET_YELLOW;
+			setTimer(2, 1000);
+		}
+		break;
+	case SET_YELLOW:
+		setTrafficLight(YELLOW, YELLOW);
+		if (timer_flag[2] == 1) {
+			status = RG;
+			deleteTimer(2);
+		}
+		if (isButtonPressed(0)) {
+			temp_time++;
+			if (temp_time > 99) temp_time = 1;
+			setTimer(2, 1000);
+		}
+		if (isButtonPressed(1)) {
+			temp_time--;
+			if (temp_time < 1) temp_time = 99;
+			setTimer(2, 1000);
+		}
+		if (isButtonPressed(2)) {
+			TIME_YELLOW = temp_time*100;
+			TIME_GREEN = TIME_RED - TIME_YELLOW;
+			temp_time = 1;
+			status = INIT;
+			deleteTimer(2);
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+void fsm_pedestrian_run(TIM_HandleTypeDef htim) {
+	switch (p_status) {
+	case IDLE:
+		setPedesLight(OFF);
+		volume = 0;
+		break;
+	case P_INIT:
+	//Route 1
+		//Red
+		if (status == RG || status == RY) {
+			setTimer(3, TIME_RED - timer_counter[0]);	//Pedes light color will be green until traffic light is not RED
+			p_status = P_GREEN;
+			ratio = 64 - 64*timer_counter[0]/TIME_RED;
+			volume = 5;
+			buzzer_delay = 1000;
+		}
+		//Green
+		else if (status == GR) {
+			setTimer(3, TIME_RED - timer_counter[0]);		//Pedes light color will be red
+			p_status = P_RED;
+			ratio = 0;
+			volume = 0;
+			buzzer_delay = 0;
+		}
+		break;
+	case P_RED:
+		setPedesLight(RED);
+		//setBuzzer(htim);
+		volume = 0;
+		if (isButtonPressed(3)) {
+			status = INIT;
+			volume = 0;
+		}
+		if (timer_flag[3] == 1) {
+			p_status = P_GREEN;
+			setTimer(3, TIME_GREEN);
+			ratio = 64 - 64*timer_counter[0]/TIME_RED;
+			volume = 0;
+			buzzer_delay = 1000;
+		}
+		break;
+	case P_GREEN:
+		setPedesLight(GREEN);
+		setBuzzer(htim);
+		if (isButtonPressed(0)) {
+			status = INIT;
+			volume = 0;
+		}
+		if (timer_flag[3] == 1) {
+			p_status = IDLE;
+			setTimer(3, TIME_RED);
+		}
+		break;
+	default:
+
+		break;
+
+	}
+}
+
+
