@@ -10,7 +10,7 @@
 int temp_time = 1;
 int volume = 0;
 int buzzer_delay = 1000;
-int ratio = 0;
+int delay_ratio = 0, volume_ratio = 0;
 UART_HandleTypeDef huart2;
 void setTrafficLight(int color1, int color2) {
 	switch (color1) {
@@ -75,9 +75,9 @@ void setBuzzer(TIM_HandleTypeDef htim) {
 	HAL_Delay(buzzer_delay);
 	__HAL_TIM_SetCompare(&htim, TIM_CHANNEL_1, 0);
 	HAL_Delay(buzzer_delay);
-	volume += ratio;
-	if (volume > 1000) volume = ratio;
-	buzzer_delay -= ratio;
+	volume += volume_ratio;
+	if (volume > 1000) volume = volume_ratio;
+	buzzer_delay -= delay_ratio;
 	if (buzzer_delay < 1) buzzer_delay = 1000;
 }
 
@@ -296,7 +296,7 @@ void fsm_tuning_run() {
 
 void fsm_pedestrian_run(TIM_HandleTypeDef htim) {
 	switch (p_status) {
-	case IDLE:
+	case IDLE:	//Wait until pedes button pressed/road 1 light is red
 		setPedesLight(OFF);
 		volume = 0;
 		break;
@@ -304,47 +304,48 @@ void fsm_pedestrian_run(TIM_HandleTypeDef htim) {
 	//Route 1
 		//Red
 		if (status == RG || status == RY) {
-			setTimer(3, TIME_RED - timer_counter[0]);	//Pedes light color will be green until traffic light is not RED
+			//setTimer(3, TIME_RED - timer_counter[0]);	//Pedes light color = green until traffic light is not RED
 			p_status = P_GREEN;
-			ratio = 64 - 64*timer_counter[0]/TIME_RED;
-			volume = 5;
+			delay_ratio = 1000/(timer_counter[0]/100);
+			volume_ratio = 1000/(timer_counter[0]/100);
+			volume = 0;
 			buzzer_delay = 1000;
 		}
 		//Green
-		else if (status == GR) {
-			setTimer(3, TIME_RED - timer_counter[0]);		//Pedes light color will be red
+		else if (status == GR || status == YR) {
+			//Pedes light color = red => Turn off
 			p_status = P_RED;
-			ratio = 0;
+			delay_ratio = 0;
+			volume_ratio = 0;
 			volume = 0;
 			buzzer_delay = 0;
 		}
 		break;
-	case P_RED:
+	case P_RED:	//Pedestrian off
 		setPedesLight(RED);
 		//setBuzzer(htim);
 		volume = 0;
 		if (isButtonPressed(3)) {
 			status = INIT;
-			volume = 0;
 		}
-		if (timer_flag[3] == 1) {
+		if (status == RG || status == RY) {
 			p_status = P_GREEN;
 			setTimer(3, TIME_GREEN);
-			ratio = 64 - 64*timer_counter[0]/TIME_RED;
+			delay_ratio = 1000/(timer_counter[0]/100);
+			volume_ratio = 1000/(timer_counter[0]/100);
 			volume = 0;
 			buzzer_delay = 1000;
 		}
 		break;
-	case P_GREEN:
+	case P_GREEN:	//Pedestrian on
 		setPedesLight(GREEN);
 		setBuzzer(htim);
 		if (isButtonPressed(0)) {
 			status = INIT;
 			volume = 0;
 		}
-		if (timer_flag[3] == 1) {
+		if (status == YR || status == GR) {
 			p_status = IDLE;
-			setTimer(3, TIME_RED);
 		}
 		break;
 	default:
